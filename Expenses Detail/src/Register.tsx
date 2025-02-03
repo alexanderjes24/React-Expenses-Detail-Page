@@ -1,28 +1,34 @@
 import  React,{ useState } from "react"
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
 
 const Register = () => {
     const[name,setName] = useState('')
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
-    const nameValidator = (name:string) =>{
-        const nameRegex = /^[a-zA-Z]{6,8}$/
-        if (!nameRegex.test(name)){
-            if (name.length < 6 || name.length >= 8){
-                return "Name must be between 6 to 8 character"
-            }
-            return "Name cannot contain numbers or special characrers"
-        }
-        return '';
-    }
+    const [error, setError] = useState('')
+    const navigate = useNavigate()
     
+    // validation
+    const nameValidator = (name:string) =>{
+        if (name.trim()===''){
+            return 'Name cannot be empty'
+        }
+        const nameRegex = /^[a-zA-Z]+$/ // Only letters allowed
+        if (!nameRegex.test(name)) {
+            return 'Name cannot contain numbers or special characters'
+        }
+        if (name.length < 6 || name.length > 8) { //Must be more than 6 characters and less than 8
+            return 'Name must be between 6 to 8 characters'
+          }
+        return ''
+    }
+
+    //handle submit
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         const errorValidator = nameValidator(name)
         if (errorValidator){
-            setError(errorValidator)
+            setError(errorValidator) //Checking Error
         }else{
-            setError('')
+             //go to Home Page
             navigate('/home')
 
         }
