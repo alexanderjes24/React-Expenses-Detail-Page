@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from './Navbar'
+import EntryForm from './EntryForm'
+import { useDataContext } from './DataContext'
 
 type FormData = {
   id: number
@@ -11,44 +13,44 @@ type FormData = {
 }
 
 function ExpensesDetailPage() {
-  //State manager
-  const [incomeEntries, setIncomeEntries] = useState<FormData[]>([])
-  const [expenseEntries, setExpenseEntries] = useState<FormData[]>([])
+  const { incomeEntries, expenseEntries, setIncomeEntries, setExpenseEntries } = useDataContext()
   const [editingEntry, setEditingEntry] = useState<FormData | null>(null)
-  const [isEditingIncome, setIsEditingIncome] = useState<boolean>(false) // Track whether editing income or expense
   const navigate = useNavigate()
 
-  //Load data from LocalStorage
-  useEffect(() => {
-    const incomeList = JSON.parse(localStorage.getItem('incomeList') || '[]')
-    const expensesList = JSON.parse(localStorage.getItem('expensesList') || '[]')
-    setIncomeEntries(incomeList)
-    setExpenseEntries(expensesList)
-  }, [])
-//Handle edit using State
-  const handleEdit = (entry: FormData, category: string) => {
+  // Handle state of the editing entry
+  const handleEdit = (entry: FormData) => {
     setEditingEntry(entry)
-    setIsEditingIncome(category === 'Income') //Set income to true
   }
-//Save edited data
-  const handleSave = () => {
-    if (editingEntry) {
-      if (isEditingIncome) {// If its Income
-        const updatedEntries = incomeEntries.map((entry) =>
-          entry.id === editingEntry.id ? editingEntry : entry
-        )
-        setIncomeEntries(updatedEntries)
-        localStorage.setItem('incomeList', JSON.stringify(updatedEntries))
-      } else { //if its Expenses
-        const updatedEntries = expenseEntries.map((entry) =>
-          entry.id === editingEntry.id ? editingEntry : entry
-        )
-        setExpenseEntries(updatedEntries)
-        localStorage.setItem('expensesList', JSON.stringify(updatedEntries))
-      }
-      alert('Entry updated successfully!')
-      setEditingEntry(null)
+
+  const handleSave = (updatedEntry: FormData) => {
+    // Check if the entry moved between categories
+    const isIncome = updatedEntry.category === 'Income'
+    
+    if (isIncome) {
+      // Remove from expense list and add to income list
+      setExpenseEntries(expenseEntries.filter(entry => entry.id !== updatedEntry.id))
+      setIncomeEntries([...incomeEntries.filter(entry => entry.id !== updatedEntry.id), updatedEntry])
+    } else {
+      // Remove from income list and add to expense list
+      setIncomeEntries(incomeEntries.filter(entry => entry.id !== updatedEntry.id))
+      setExpenseEntries([...expenseEntries.filter(entry => entry.id !== updatedEntry.id), updatedEntry])
     }
+  
+    alert('Entry updated successfully!')
+    setEditingEntry(null)
+  }
+
+  // Check id and delete
+  const handleDelete = (id: number, category: string) => {
+    if (category === 'Income') {
+      const updatedEntries = incomeEntries.filter((entry) => entry.id !== id)
+      setIncomeEntries(updatedEntries)
+    } else {
+      const updatedEntries = expenseEntries.filter((entry) => entry.id !== id)
+      setExpenseEntries(updatedEntries)
+    }
+
+    alert('Entry deleted successfully!')
   }
 
   return (
@@ -57,7 +59,6 @@ function ExpensesDetailPage() {
       <h2 className="text-2xl font-bold mb-6 text-center">All Entries</h2>
 
       <div className="flex gap-8">
-        {/* Income Section */}
         <div className="w-1/2">
           <h3 className="text-lg font-semibold mb-4">Income</h3>
           {incomeEntries.length === 0 ? (
@@ -72,7 +73,7 @@ function ExpensesDetailPage() {
                     <p><strong>Description:</strong> {entry.description}</p>
                   </div>
                   <button
-                    onClick={() => handleEdit(entry, 'Income')}
+                    onClick={() => handleEdit(entry)}
                     className="mr-2 mt-2 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded focus:outline-none"
                   >
                     Edit
@@ -89,7 +90,6 @@ function ExpensesDetailPage() {
           )}
         </div>
 
-        {/* Expense Section */}
         <div className="w-1/2">
           <h3 className="text-lg font-semibold mb-4">Expenses</h3>
           {expenseEntries.length === 0 ? (
@@ -104,7 +104,7 @@ function ExpensesDetailPage() {
                     <p><strong>Description:</strong> {entry.description}</p>
                   </div>
                   <button
-                    onClick={() => handleEdit(entry, 'Expense')}
+                    onClick={() => handleEdit(entry)}
                     className="mr-2 mt-2 bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded focus:outline-none"
                   >
                     Edit
@@ -122,84 +122,25 @@ function ExpensesDetailPage() {
         </div>
       </div>
 
-      {/* Edit Form */}
       {editingEntry && (
-        <div className="fixed inset-0 backdrop-brightness-50 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h3 className="text-xl font-semibold mb-4">{`Edit ${isEditingIncome ? 'Income' : 'Expense'}`}</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleSave()
-              }}
-            >
-              <div className="mb-4">
-                <label className="block mb-2 text-sm font-medium text-gray-700">Title</label>
-                <input
-                  type="text"
-                  value={editingEntry.title}
-                  onChange={(e) =>
-                    setEditingEntry((prev: FormData | null) => (prev ? { ...prev, title: e.target.value } : prev))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block mb-2 text-sm font-medium text-gray-700">Amount</label>
-                <input
-                  type="number"
-                  value={editingEntry.amount}
-                  onChange={(e) =>
-                    setEditingEntry((prev: FormData | null) => (prev ? { ...prev, amount: e.target.value } : prev))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block mb-2 text-sm font-medium text-gray-700">Description</label>
-                <input
-                  type="text"
-                  value={editingEntry.description}
-                  onChange={(e) =>
-                    //update the state 
-                    setEditingEntry((prev: FormData | null) => (prev ? { ...prev, description: e.target.value } : prev))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded focus:outline-none"
-              >
-                Save Changes
-              </button>
-            </form>
-            <button
-              onClick={() => setEditingEntry(null)}
-              className="mt-4 bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded focus:outline-none"
-            >
-              Cancel
-            </button>
+        <div className="fixed inset-0 backdrop-brightness-20 bg-opacity-50 flex justify-center items-center">
+          <div className=" p-6 rounded-lg shadow-lg w-1/3">
+            <EntryForm
+              initialData={editingEntry}
+              onSubmit={handleSave}
+              onCancel={() => setEditingEntry(null)}
+              isEditing={true}
+              disableCancel={true}
+            />
           </div>
         </div>
       )}
-      <button className='btn btn-dark' onClick={() => navigate('/home')}>back</button>
+
+      <button className="btn btn-dark mt-4" onClick={() => navigate('/home')}>
+        Back
+      </button>
     </div>
   )
-
-  function handleDelete(id: number, category: string) {
-    if (category === 'Income') {
-      const updatedEntries = incomeEntries.filter((entry) => entry.id !== id)
-      setIncomeEntries(updatedEntries)
-      localStorage.setItem('incomeList', JSON.stringify(updatedEntries))
-    } else {
-      const updatedEntries = expenseEntries.filter((entry) => entry.id !== id)
-      setExpenseEntries(updatedEntries)
-      localStorage.setItem('expensesList', JSON.stringify(updatedEntries))
-    }
-
-    alert('Entry deleted successfully!')
-  }
 }
 
 export default ExpensesDetailPage

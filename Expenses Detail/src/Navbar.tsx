@@ -1,13 +1,16 @@
 import { useNavigate, useLocation } from "react-router-dom"
-import { useState } from 'react'
+
+import { useDataContext } from './DataContext'
 
 function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { setIncomeEntries, setExpenseEntries } = useDataContext()
+
   const handleLogout = () => {
-    localStorage.removeItem('incomeList')// Clear income list from localStorage
-    localStorage.removeItem('expensesList')// Clear expenses list from localStorage
-    navigate('/')
+    setIncomeEntries([]) // Clear income entries from global state
+    setExpenseEntries([]) // Clear expenses entries from global state
+    navigate('/')// Navigate back to register
   }
   
 
