@@ -1,6 +1,6 @@
 import React from 'react'
 import EntryForm from './EntryForm'
-import { useDataContext } from './DataContext'
+import { useDataContext } from '../storage/DataContext'
 import { useNavigate} from "react-router-dom"
 
 type FormData = {

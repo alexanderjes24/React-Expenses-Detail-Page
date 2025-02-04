@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import Navbar from './Navbar'
-import List from './List'
+import Navbar from './component/Navbar'
+import List from './component/List'
 
 
 

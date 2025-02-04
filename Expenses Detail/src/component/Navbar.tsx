@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom"
 
-import { useDataContext } from './DataContext'
+import { useDataContext } from '../storage/DataContext'
 
 function Navbar() {
   const location = useLocation()

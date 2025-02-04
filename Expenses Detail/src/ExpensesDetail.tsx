@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Navbar from './Navbar'
-import EntryForm from './EntryForm'
-import { useDataContext } from './DataContext'
+import Navbar from './component/Navbar'
+import EntryForm from './component/EntryForm'
+import { useDataContext } from './storage/DataContext'
 
 type FormData = {
   id: number

@@ -34,7 +34,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     setIncomeEntries(storedIncome)
     setExpenseEntries(storedExpenses)
   }, [])
-  
+  //save data
   useEffect(() => {
     console.log('Saving income entries to storage:', incomeEntries)
     localStorage.setItem('incomeEntries', JSON.stringify(incomeEntries))
